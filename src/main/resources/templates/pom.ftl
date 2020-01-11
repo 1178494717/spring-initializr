@@ -22,16 +22,16 @@
 
     <dependencies>
         <#list dependencyList as dependency>
-            <dependency>
-                <groupId>${dependency.groupId}</groupId>
-                <artifactId>${dependency.artifactId}</artifactId>
-                <#if dependency.version??>
-                    <version>${dependency.version}</version>
-                </#if>
-                <#if dependency.scope??>
-                    <version>${dependency.scope}</version>
-                </#if>
-            </dependency>
+        <dependency>
+            <groupId>${dependency.groupId}</groupId>
+            <artifactId>${dependency.artifactId}</artifactId>
+            <#if dependency.version??>
+                <version>${dependency.version}</version>
+            </#if>
+            <#if dependency.scope??>
+                <version>${dependency.scope}</version>
+            </#if>
+        </dependency>
         </#list>
     </dependencies>
 

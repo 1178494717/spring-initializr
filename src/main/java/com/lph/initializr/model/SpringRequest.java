@@ -64,9 +64,8 @@ public class SpringRequest {
 
     public List<Dependency> getDependencyList() {
         for (String id: dependencies){
-            Dependency dependency = DependencyHelper.getDependency(id);
-            dependencyList.add(dependency);
-            if(id.contains("cloud") && StringUtils.hasText(cloudVersion)){
+            this.dependencyList.addAll(DependencyHelper.getDependency(id));
+            if(id.contains("cloud") && !StringUtils.hasText(cloudVersion)){
                 this.setCloudVersion(VersionHelper.getCloudVersion(this.getBootVersion()));
             }
         }

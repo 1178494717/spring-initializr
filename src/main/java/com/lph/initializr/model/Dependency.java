@@ -17,7 +17,7 @@ public class Dependency {
     private  String groupId;
     private  String artifactId;
     private  String version;
-    private  DependencyScope scope;
+    private  String scope;
     private  String type;
 
 }

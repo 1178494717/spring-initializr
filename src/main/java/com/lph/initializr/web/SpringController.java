@@ -48,11 +48,11 @@ public class SpringController {
         }
     }
 
-    @GetMapping(value = "/spring-initializr/start.zip")
-    public ResponseEntity<byte[]> mavenProject(SpringRequest springRequest) throws TemplateException, IOException {
-
+    @GetMapping(value = "/spring-initializr/starter.zip")
+    public ResponseEntity<byte[]> mavenProject(SpringRequest springRequest) throws IOException {
+        log.info("SpringRequest -> {}", springRequest);
         Configuration configuration = configurer.getConfiguration();
-        String rootPath = System.getProperty("user.home") + File.separator + "tmp";
+        String rootPath = System.getProperty("user.dir") + File.separator + "tmp";
         FileUtils.deleteDirectory(new File(rootPath));
         process(configuration, rootPath, springRequest);
         ZipHelper.zip(rootPath, rootPath + "/" + springRequest.getArtifactId() + ".zip");
@@ -64,9 +64,26 @@ public class SpringController {
         return body;
     }
 
-    private void process(Configuration configuration, String rootPath, SpringRequest springRequest) throws IOException, TemplateException {
+    @GetMapping(value = "/spring-initializr/pom.xml")
+    public ResponseEntity<byte[]> mavenBuild(SpringRequest springRequest) throws IOException {
+        log.info("SpringRequest -> {}", springRequest);
+        Configuration configuration = configurer.getConfiguration();
+        String rootPath = System.getProperty("user.dir") + File.separator + "tmp";
+        FileUtils.deleteDirectory(new File(rootPath));
+
+        String pomOutputPath = rootPath + "/pom.xml";
+        processOne(configuration, "pom.ftl", pomOutputPath, springRequest);
+        byte[] bytes = FileUtils.readFileToByteArray(new File(pomOutputPath));
+        ResponseEntity<byte[]> body = ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=pom.xml")
+                .body(bytes);
+        FileUtils.deleteDirectory(new File(rootPath));
+        return body;
+    }
+
+    private void process(Configuration configuration, String rootPath, SpringRequest springRequest) {
         String appOutputPath = rootPath + "/src/main/java/"
-                + springRequest.getPackageName().replaceAll("\\.","/")
+                + springRequest.getPackageName().replaceAll("\\.", "/")
                 + "/App.java";
         processOne(configuration, "App.ftl", appOutputPath, springRequest);
 
@@ -77,14 +94,27 @@ public class SpringController {
         processOne(configuration, "pom.ftl", pomOutputPath, springRequest);
     }
 
-    private void processOne(Configuration configuration, String freemarkerPath, String outputPath, SpringRequest springRequest) throws IOException, TemplateException {
-        File outputFile = new File(outputPath);
-        if(!outputFile.getParentFile().exists()){
-            outputFile.getParentFile().mkdirs();
+    private void processOne(Configuration configuration, String freemarkerPath, String outputPath, SpringRequest springRequest) {
+        FileWriter fileWriter = null;
+        try {
+            File outputFile = new File(outputPath);
+            if (!outputFile.getParentFile().exists()) {
+                outputFile.getParentFile().mkdirs();
+            }
+            Template template = configuration.getTemplate(freemarkerPath);
+            fileWriter = new FileWriter(outputFile);
+            template.process(springRequest, fileWriter);
+            fileWriter.close();
+        } catch (Exception e) {
+            log.error("", e);
+        } finally {
+            if(fileWriter != null){
+                try {
+                    fileWriter.close();
+                } catch (IOException e) {
+                    log.error("", e);
+                }
+            }
         }
-        Template template = configuration.getTemplate(freemarkerPath);
-        FileWriter fileWriter = new FileWriter(outputFile);
-        template.process(springRequest, fileWriter);
-        fileWriter.close();
     }
 }

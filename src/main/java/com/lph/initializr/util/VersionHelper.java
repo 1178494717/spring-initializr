@@ -11,6 +11,7 @@ public class VersionHelper {
 
     static {
         versionMap.put("2.2.2.RELEASE", "Hoxton.SR1");
+        versionMap.put("2.1.11.RELEASE", "Greenwich.SR4");
     }
 
     public static String getCloudVersion(String bootVersion){
